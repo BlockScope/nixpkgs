@@ -96,5 +96,5 @@ self: super: {
     haddock-library = dontHaddock (dontCheck self.haddock-library_1_5_0_1);
   }));
 
-  uom-plugin = doJailbreak super.uom-plugin; # ghc-tcplugins-extra (>=0.1 && <0.3)
+  uom-plugin = dontCheck (doJailbreak super.uom-plugin); # ghc-tcplugins-extra (>=0.1 && <0.3)
 }
