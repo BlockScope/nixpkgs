@@ -97,5 +97,5 @@ self: super: {
   }));
 
   uom-plugin = dontCheck (doJailbreak super.uom-plugin); # ghc-tcplugins-extra (>=0.1 && <0.3)
-  hcoord = null;
+  hpack = doJailbreak (super.hpack);
 }
