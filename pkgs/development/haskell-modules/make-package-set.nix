@@ -38,7 +38,7 @@ let
   inherit (stdenv) buildPlatform hostPlatform;
 
   inherit (stdenv.lib) fix' extends makeOverridable;
-  inherit (haskellLib) overrideCabal getHaskellBuildInputs;
+  inherit (haskellLib) overrideCabal getBuildInputs;
 
   mkDerivationImpl = pkgs.callPackage ./generic-builder.nix {
     inherit stdenv;
@@ -177,19 +177,22 @@ in package-set { inherit pkgs stdenv callPackage; } self // {
     callHackage = name: version: callPackageKeepDeriver (self.hackage2nix name version);
 
     # Creates a Haskell package from a source package by calling cabal2nix on the source.
-    callCabal2nix = name: src: args: let
-      filter = path: type:
-                 pkgs.lib.hasSuffix "${name}.cabal" path ||
-                 baseNameOf path == "package.yaml";
-      expr = self.haskellSrc2nix {
-        inherit name;
-        src = if pkgs.lib.canCleanSource src
-                then pkgs.lib.cleanSourceWith { inherit src filter; }
-              else src;
-      };
-    in overrideCabal (callPackageKeepDeriver expr args) (orig: {
-         inherit src;
-       });
+    callCabal2nixWithOptions = name: src: extraCabal2nixOptions: args:
+      let
+        filter = path: type:
+                   pkgs.lib.hasSuffix "${name}.cabal" path ||
+                   baseNameOf path == "package.yaml";
+        expr = self.haskellSrc2nix {
+          inherit name extraCabal2nixOptions;
+          src = if pkgs.lib.canCleanSource src
+                  then pkgs.lib.cleanSourceWith { inherit src filter; }
+                else src;
+        };
+      in overrideCabal (callPackageKeepDeriver expr args) (orig: {
+           inherit src;
+         });
+
+    callCabal2nix = name: src: args: self.callCabal2nixWithOptions name src "" args;
 
     # : { root : Path
     #   , source-overrides : Defaulted (Either Path VersionNumber)
@@ -257,7 +260,7 @@ in package-set { inherit pkgs stdenv callPackage; } self // {
     shellFor = { packages, withHoogle ? false, ... } @ args:
       let
         selected = packages self;
-        packageInputs = builtins.map getHaskellBuildInputs selected;
+        packageInputs = builtins.map getBuildInputs selected;
         haskellInputs =
           builtins.filter
             (input: pkgs.lib.all (p: input.outPath != p.outPath) selected)

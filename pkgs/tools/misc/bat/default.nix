@@ -1,24 +1,24 @@
-{ stdenv, rustPlatform, fetchFromGitHub, cmake, pkgconfig, zlib, libiconv, darwin }:
+{ stdenv, rustPlatform, fetchFromGitHub, cmake, pkgconfig, zlib
+, Security, libiconv
+}:
 
 rustPlatform.buildRustPackage rec {
   name    = "bat-${version}";
-  version = "0.5.0";
+  version = "0.7.0";
 
   src = fetchFromGitHub {
     owner  = "sharkdp";
     repo   = "bat";
     rev    = "v${version}";
-    sha256 = "0ms1hmv6qx15p47l07h7szwq0bgphhskc0xca2l641159h55r6dg";
+    sha256 = "1dhn88asf08dvl4827v4mkxafcr01m1h5jmicvzda9ywmr82g1cs";
     fetchSubmodules = true;
   };
 
-  cargoSha256 = "1dzm44kcx3plh74qr4wghl3wqwr62hcxzlcv7mhh0vvk3z36c8d4";
+  cargoSha256 = "10s8ig08prs1wcsisrllvsixqkrkwjx769y1w5fypldn9kfk2lka";
 
   nativeBuildInputs = [ cmake pkgconfig zlib ];
 
-  buildInputs = [ libiconv ] ++ stdenv.lib.optionals stdenv.isDarwin [
-    darwin.apple_sdk.frameworks.Security
-  ];
+  buildInputs = stdenv.lib.optionals stdenv.isDarwin [ Security libiconv ];
 
   meta = with stdenv.lib; {
     description = "A cat(1) clone with syntax highlighting and Git integration";
